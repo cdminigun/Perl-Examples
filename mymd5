@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+$md5file = "";
+my ($rootfile, $md5file) = @ARGV;
+if($rootfile eq ""){
+	print "Error, no rootfile provided. \n";
+	exit;
+}
+open($fh, "<", "$rootfile") or die "Can't open $rootfile";
+if($md5file ne ""){
+	open($out, ">", "$md5file") or die "Can't open $md5file";
+}
+@direct = <$fh>;
+chop(@direct);
+foreach $dir(@direct){
+	@files_in_dir = `find $dir`;
+	chomp(@files_in_dir);
+	@rfiles_in_dir = grep(-f, @files_in_dir);
+	foreach $files(@rfiles_in_dir){
+		$md5sum = `md5sum $files`;
+		my ($mdone, $mdtwo) = split(" ",$md5sum);
+		$output = "$mdtwo\t$mdone";
+		if($md5file ne ""){
+			print $out "$output\n";
+		}else{
+			print "$output\n";
+		}
+	}
+}
+close ($fh);
+if($md5file ne ""){
+	close ($out);
+}
+
