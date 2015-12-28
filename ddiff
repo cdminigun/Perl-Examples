@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+die "Error, requires valid input. \nInput:\n\tddiff [-ds12] <directory1> <directory2>" unless scalar(@ARGV) > 0;
+if($ARGV[0] =~ /^-\w/){
+	$switch_statement = shift;
+	if($switch_statement =~ /s/) {$switch_s = 1;} else{$switch_s = 0;}
+	if($switch_statement =~ /d/) {$switch_d = 1;} else{$switch_d = 0;}
+	if($switch_statement =~ /1/) {$switch_dir1 =1;} else{$switch_dir1 =0;}
+	if($switch_statement =~ /2/) {$switch_dir2 =1;} else{$switch_dir2 =0;}
+}
+else{$switch_s =0; $switch_d =0; $switch_dir1 = 0; $switch_dir2 =0;}
+
+
+$directory1 = shift @ARGV;
+@d1_filess = `ls $directory1`;
+
+$directory2 = shift @ARGV;
+@d2_files = `ls $directory2`;
+
+foreach $dfile1(@d1_filess)
+{
+        chop $dfile1;
+        if(-f "$directory1/$dfile1")
+        {
+                $directory_hash{$dfile1} -= 1;
+        }
+}
+foreach $dfile2(@d2_files)
+{
+        chop $dfile2;
+        if(-f "$directory2/$dfile2")
+        {
+                ${$dfile2} += 1;
+        }
+}
+foreach $file(sort keys %directory_hash)
+{
+        if($directory_hash{$file} == -1 &&(($switch_dir1 == 1 && $switch_dir2 == 1) || ($switch_dir1 ==1 && $switch_dir2 == 0)))
+        {
+                print "<<< $file\n";
+        }
+         if($directory_hash{$file} == 1 &&(($switch_dir2 == 1 && $switch_dir1 == 1) || ($switch_dir2 ==1 && $switch_dir1 == 0)))
+        {
+                print ">>> $file\n";
+        }
+        if($directory_hash{$file} == 0)
+        {
+                $diff = `/usr/bin/diff -q directory1/$file $directory2/$file`;
+                if($diff =~ m/differ/)
+                {
+                        if(($switch_d ==1 && $switch_s==1) || ($switch_d ==1 && $switch_s ==0))
+                        {
+                                print "< $file >\n";
+                        }
+                }
+                else
+                {
+                        if(($switch_s == 1 && $switch_d ==1) || ($switch_s == 1 && $switch_d == 0))
+                        {
+                                print "> $file <\n";
+                        }
+                }
+        }
+}
+
